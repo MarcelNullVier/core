@@ -112,6 +112,19 @@ async def test_sensors(hass):
     assert entry
     assert entry.unique_id == "JM000000000000000_rear_right_tire_pressure"
 
+    # Battery Level Percentage
+    state = hass.states.get("sensor.my_mazdamx30_battery_level_percentage")
+    assert state
+    assert (
+        state.attributes.get(ATTR_FRIENDLY_NAME)
+        == "My Mazda MX30 Battery Level Percentage"
+    )
+    assert state.attributes.get(ATTR_ICON) == "mdi:ev-station"
+    assert state.attributes.get(ATTR_UNIT_OF_MEASUREMENT) == PERCENTAGE
+    assert state.state == "75.0"
+    entry = entity_registry.async_get("sensor.my_mazdamx30_battery_level_percentage")
+    assert entry
+    assert entry.unique_id == "JM000000000000001_fuel_remaining_percentage"
 
 async def test_sensors_imperial_units(hass):
     """Test that the sensors work properly with imperial units."""

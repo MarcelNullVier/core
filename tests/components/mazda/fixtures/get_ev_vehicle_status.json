@@ -1,0 +1,19 @@
+{
+	"chargeInfo": {
+		"lastUpdatedTimestamp": "20211109155202",
+		"batteryLevelPercentage": 75,
+		"drivingRangeKm": 149,
+		"pluggedIn": false,
+		"charging": false,
+		"basicChargeTimeMinutes": 70,
+		"quickChargeTimeMinutes": 85,
+		"batteryHeaterAuto": true,
+		"batteryHeaterOn": false
+	},
+	"hvacInfo": {
+		"hvacOn": false,
+		"frontDefroster": false,
+		"rearDefroster": false,
+		"interiorTemperatureCelsius": 23.3
+	}
+}

@@ -27,6 +27,8 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
         entities.append(MazdaFrontRightTirePressureSensor(client, coordinator, index))
         entities.append(MazdaRearLeftTirePressureSensor(client, coordinator, index))
         entities.append(MazdaRearRightTirePressureSensor(client, coordinator, index))
+        entities.append(MazdaBatteryLevelPercentage(client, coordinator, index))
+
 
     async_add_entities(entities)
 
@@ -259,3 +261,32 @@ class MazdaRearRightTirePressureSensor(MazdaEntity, SensorEntity):
         """Return the state of the sensor."""
         tire_pressure = self.data["status"]["tirePressure"]["rearRightTirePressurePsi"]
         return None if tire_pressure is None else round(tire_pressure)
+
+class MazdaBatteryLevelPercentage(MazdaEntity, SensorEntity):
+    """Class for the rear right tire pressure sensor."""
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        vehicle_name = self.get_vehicle_name()
+        return f"{vehicle_name} Battery Level Percentage"
+
+    @property
+    def unique_id(self):
+        """Return a unique identifier for this entity."""
+        return f"{self.vin}_battery_level_percentage"
+
+    @property
+    def native_unit_of_measurement(self):
+        """Return the unit of measurement."""
+        return PERCENTAGE
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend."""
+        return "mdi:ev-station"
+
+    @property
+    def native_value(self):
+        """Return the state of the sensor."""
+        return self.data["evStatus"]["chargeInfo"]["batteryLevelPercentage"]

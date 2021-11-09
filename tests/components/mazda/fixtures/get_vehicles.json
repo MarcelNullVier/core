@@ -13,5 +13,23 @@
         "interiorColorName": "BLACK",
         "exteriorColorCode": "42M",
         "exteriorColorName": "DEEP CRYSTAL BLUE MICA"
+    },
+    {
+        "vin": "JM000000000000001",
+        "id": 12346,
+        "nickname": "",
+        "carlineCode": "MAZDA MX-30",
+        "carlineName": "Mazda MX-30",
+        "modelYear": "2020",
+        "modelCode": "DN4J",
+        "modelName": "Mazda MX-30",
+        "automaticTransmission": false,
+        "interiorColorCode": "D2F",
+        "interiorColorName": "Innenraumkonzept 'Industrial Vintage'",
+        "exteriorColorCode": "46G",
+        "exteriorColorName": "Matrixgrau Metallic",
+        "isElectric": true
     }
 ]
+
+
