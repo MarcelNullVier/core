@@ -148,8 +148,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
                 vehicle["status"] = await with_timeout(
                     mazda_client.get_vehicle_status(vehicle["id"])
                 )
-                if vehicle['isElectric']:
-                    vehicle['evStatus'] = await with_timeout(
+                if vehicle["isElectric"]:
+                    vehicle["evStatus"] = await with_timeout(
                         mazda_client.get_ev_vehicle_status(vehicle["id"])
                     )
 
