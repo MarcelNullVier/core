@@ -1,11 +1,13 @@
 """Platform for Mazda sensor integration."""
 from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.binary_sensor import BinarySensorEntity
 from homeassistant.const import (
     CONF_UNIT_SYSTEM_IMPERIAL,
     LENGTH_KILOMETERS,
     LENGTH_MILES,
     PERCENTAGE,
     PRESSURE_PSI,
+    TIME_MINUTES,
 )
 
 from . import MazdaEntity
@@ -20,15 +22,23 @@ async def async_setup_entry(hass, config_entry, async_add_entities):
     entities = []
 
     for index, _ in enumerate(coordinator.data):
-        entities.append(MazdaFuelRemainingSensor(client, coordinator, index))
-        entities.append(MazdaFuelDistanceSensor(client, coordinator, index))
+
         entities.append(MazdaOdometerSensor(client, coordinator, index))
         entities.append(MazdaFrontLeftTirePressureSensor(client, coordinator, index))
         entities.append(MazdaFrontRightTirePressureSensor(client, coordinator, index))
         entities.append(MazdaRearLeftTirePressureSensor(client, coordinator, index))
         entities.append(MazdaRearRightTirePressureSensor(client, coordinator, index))
-        entities.append(MazdaBatteryLevelPercentage(client, coordinator, index))
 
+        if coordinator.data[index]["isElectric"]:
+            entities.append(MazdaBatteryLevelPercentageSensor(client, coordinator, index))
+            entities.append(MazdaPluggedInSensor(client, coordinator, index))
+            entities.append(MazdaChargingSensor(client, coordinator, index))
+            entities.append(MazdaBasicChargeTimeSensor(client, coordinator, index))
+            entities.append(MazdaQuickChargeTimeSensor(client, coordinator, index))
+            entities.append(MazdaDrivingRangeSensor(client, coordinator, index))
+        else:
+            entities.append(MazdaFuelRemainingSensor(client, coordinator, index))
+            entities.append(MazdaFuelDistanceSensor(client, coordinator, index))
 
     async_add_entities(entities)
 
@@ -262,8 +272,9 @@ class MazdaRearRightTirePressureSensor(MazdaEntity, SensorEntity):
         tire_pressure = self.data["status"]["tirePressure"]["rearRightTirePressurePsi"]
         return None if tire_pressure is None else round(tire_pressure)
 
-class MazdaBatteryLevelPercentage(MazdaEntity, SensorEntity):
-    """Class for the rear right tire pressure sensor."""
+
+class MazdaBatteryLevelPercentageSensor(MazdaEntity, SensorEntity):
+    """Class for the battery level percentage sensor."""
 
     @property
     def name(self):
@@ -290,3 +301,151 @@ class MazdaBatteryLevelPercentage(MazdaEntity, SensorEntity):
     def native_value(self):
         """Return the state of the sensor."""
         return self.data["evStatus"]["chargeInfo"]["batteryLevelPercentage"]
+
+
+class MazdaDrivingRangeSensor(MazdaEntity, SensorEntity):
+    """Class for the driving range sensor."""
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        vehicle_name = self.get_vehicle_name()
+        return f"{vehicle_name} Driving Range"
+
+    @property
+    def unique_id(self):
+        """Return a unique identifier for this entity."""
+        return f"{self.vin}_driving_range"
+
+    @property
+    def native_unit_of_measurement(self):
+        """Return the unit of measurement."""
+        if self.hass.config.units.name == CONF_UNIT_SYSTEM_IMPERIAL:
+            return LENGTH_MILES
+        return LENGTH_KILOMETERS
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend."""
+        return "mdi:map-marker-distance"
+
+    @property
+    def native_value(self):
+        """Return the state of the sensor."""
+        driving_range_km = self.data["evStatus"]["chargeInfo"]["drivingRangeKm"]
+        return (
+            None
+            if driving_range_km is None
+            else round(
+                self.hass.config.units.length(driving_range_km, LENGTH_KILOMETERS)
+            )
+        )
+
+
+class MazdaPluggedInSensor(MazdaEntity, BinarySensorEntity):
+    """Class for the pluggedIn sensor."""
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        vehicle_name = self.get_vehicle_name()
+        return f"{vehicle_name} Plugged In"
+
+    @property
+    def unique_id(self):
+        """Return a unique identifier for this entity."""
+        return f"{self.vin}_pluggedIn"
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend."""
+        return "mdi:ev-plug-type2"
+
+    @property
+    def is_on(self):
+        """Return the state of the sensor."""
+        return self.data["evStatus"]["chargeInfo"]["pluggedIn"]
+
+
+class MazdaChargingSensor(MazdaEntity, BinarySensorEntity):
+    """Class for the charing sensor."""
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        vehicle_name = self.get_vehicle_name()
+        return f"{vehicle_name} Charging"
+
+    @property
+    def unique_id(self):
+        """Return a unique identifier for this entity."""
+        return f"{self.vin}_charging"
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend."""
+        return "mdi:battery-charging"
+
+    @property
+    def is_on(self):
+        """Return the state of the sensor."""
+        return self.data["evStatus"]["chargeInfo"]["charging"]
+
+
+class MazdaBasicChargeTimeSensor(MazdaEntity, SensorEntity):
+    """Class for the basic charge time sensor."""
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        vehicle_name = self.get_vehicle_name()
+        return f"{vehicle_name} Basic Charge Time Minutes"
+
+    @property
+    def unique_id(self):
+        """Return a unique identifier for this entity."""
+        return f"{self.vin}_basic_charge_time"
+
+    @property
+    def native_unit_of_measurement(self):
+        """Return the unit of measurement."""
+        return TIME_MINUTES
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend."""
+        return "mdi:power-socket-eu"
+
+    @property
+    def native_value(self):
+        """Return the state of the sensor."""
+        return self.data["evStatus"]["chargeInfo"]["basicChargeTimeMinutes"]
+
+class MazdaQuickChargeTimeSensor(MazdaEntity, SensorEntity):
+    """Class for the quick charge time sensor."""
+
+    @property
+    def name(self):
+        """Return the name of the sensor."""
+        vehicle_name = self.get_vehicle_name()
+        return f"{vehicle_name} Quick Charge Time Minutes"
+
+    @property
+    def unique_id(self):
+        """Return a unique identifier for this entity."""
+        return f"{self.vin}_quick_charge_time"
+
+    @property
+    def native_unit_of_measurement(self):
+        """Return the unit of measurement."""
+        return TIME_MINUTES
+
+    @property
+    def icon(self):
+        """Return the icon to use in the frontend."""
+        return "mdi:ev-plug-ccs2"
+
+    @property
+    def native_value(self):
+        """Return the state of the sensor."""
+        return self.data["evStatus"]["chargeInfo"]["quickChargeTimeMinutes"]
